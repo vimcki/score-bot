@@ -1,6 +1,6 @@
 import * as web3 from '@solana/web3.js';
 
-import * as factory from "@staratlas/factory"
+import {createHarvestInstruction} from "@staratlas/factory"
 
 import KeypairProvider from "./pkg/keypair/secret_key_file/keypair"
 
@@ -19,7 +19,7 @@ async function go() {
 	const resp = await connection.getTokenAccountsByOwner(keypair.publicKey, {mint: atlas_mint})
 	const my_atlas_account = resp.value[0].pubkey
 
-	const instruction = await factory.createHarvestInstruction(
+	const instruction = await createHarvestInstruction(
 		connection, 
 		keypair.publicKey, 
 		my_atlas_account,
