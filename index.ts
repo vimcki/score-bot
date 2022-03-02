@@ -2,10 +2,12 @@ import * as web3 from '@solana/web3.js';
 
 import * as factory from "@staratlas/factory"
 
-import KeypairProvider from "./pkg/keypair/secret_key_file/keypair"
+import KeypairProvider from "./libs/pkg/keypair/secret_key_file/keypair"
+
+import Puller from "./libs/ships_data/puller/http_get/get"
+const ships_puller = new Puller("https://galaxy.staratlas.com/nfts")
 
 const atlas_mint = new web3.PublicKey("ATLASXmbPQxBUYbxPsV97usA3fPQYEqzQBUHgiFCUsXx")
-const opalj_mint = new web3.PublicKey("Ev3xUhc1Leqi4qR2E5VoG9pcxCvHHmnAaSRVPg485xAT")
 const score_program_id = new web3.PublicKey("FLEET1qqzpexyaDpqb2DGsSzE2sDCizewCg9WjrA6DBW")
 
 const kpp = new KeypairProvider("/home/user/.config/solana/bank.json")
@@ -14,6 +16,7 @@ const keypair = kpp.get()
 
 
 async function go() {
+	const ships = await ships_puller.pull()
 	let connection = new web3.Connection(web3.clusterApiUrl('mainnet-beta'));
 
 	const resp = await connection.getTokenAccountsByOwner(keypair.publicKey, {mint: atlas_mint})
@@ -24,7 +27,7 @@ async function go() {
 		keypair.publicKey, 
 		my_atlas_account,
 		atlas_mint,
-		opalj_mint,
+		ships["OPALJ"].mint_addr,
 		score_program_id
 	)
 	let transaction = new web3.Transaction()
