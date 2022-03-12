@@ -16,27 +16,31 @@ const keypair = kpp.get()
 
 
 async function go() {
-	const ships = await ships_puller.pull()
+	// const ships = await ships_puller.pull()
 	let connection = new web3.Connection(web3.clusterApiUrl('mainnet-beta'));
 
 	const resp = await connection.getTokenAccountsByOwner(keypair.publicKey, {mint: atlas_mint})
 	const my_atlas_account = resp.value[0].pubkey
+	const fleets =	await factory.getAllFleetsForUserPublicKey(connection, keypair.publicKey, score_program_id)
 
-	const instructions = await factory.createHarvestInstruction(
-		connection, 
-		keypair.publicKey, 
-		my_atlas_account,
-		atlas_mint,
-		ships["OPALJ"].mint_addr,
-		score_program_id
-	)
-	let transaction = new web3.Transaction()
-	transaction.add(instructions[0])
-	const signature = await web3.sendAndConfirmTransaction(
-		connection,
-		transaction,
-		[keypair],
-  );
-  console.log('SIGNATURE', signature);
+	for (var fleet of fleets) {
+		console.log('shipMint: ', fleet.shipMint.toJSON());
+		const instructions = await factory.createHarvestInstruction(
+			connection, 
+			keypair.publicKey, 
+			my_atlas_account,
+			atlas_mint,
+			fleet.shipMint,
+			score_program_id
+		)
+		let transaction = new web3.Transaction()
+		transaction.add(instructions[0])
+		const signature = await web3.sendAndConfirmTransaction(
+			connection,
+			transaction,
+			[keypair],
+		);
+		console.log('SIGNATURE', signature);
+	}
 }
 go()
