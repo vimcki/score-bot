@@ -4,8 +4,9 @@ import * as factory from "@staratlas/factory"
 
 import KeypairProvider from "./libs/pkg/keypair/secret_key_file/keypair"
 
-import Puller from "./libs/ships_data/puller/http_get/get"
-const ships_puller = new Puller("https://galaxy.staratlas.com/nfts")
+//import Puller from "./libs/ships_data/puller/http_get/get"
+import connection from "./libs/rpc_connection/sa/sa"
+//const ships_puller = new Puller("https://galaxy.staratlas.com/nfts")
 
 const atlas_mint = new web3.PublicKey("ATLASXmbPQxBUYbxPsV97usA3fPQYEqzQBUHgiFCUsXx")
 const score_program_id = new web3.PublicKey("FLEET1qqzpexyaDpqb2DGsSzE2sDCizewCg9WjrA6DBW")
@@ -16,8 +17,7 @@ const keypair = kpp.get()
 
 
 async function go() {
-	// const ships = await ships_puller.pull()
-	let connection = new web3.Connection(web3.clusterApiUrl('mainnet-beta'));
+	//const ships = await ships_puller.pull()
 
 	const resp = await connection.getTokenAccountsByOwner(keypair.publicKey, {mint: atlas_mint})
 	const my_atlas_account = resp.value[0].pubkey
