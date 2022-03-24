@@ -25,5 +25,3 @@ export default class Puller{
 		return ships
 	}
 }
-
-
