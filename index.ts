@@ -13,7 +13,6 @@ import connection from "./libs/rpc_connection/sa/sa"
 const atlasMint = new web3.PublicKey("ATLASXmbPQxBUYbxPsV97usA3fPQYEqzQBUHgiFCUsXx")
 const scoreProgramID = new web3.PublicKey("FLEET1qqzpexyaDpqb2DGsSzE2sDCizewCg9WjrA6DBW")
 const foodMint = new web3.PublicKey("foodQJAztMzX1DKpLaiounNe2BDMds5RNuPC6jsNrDG")
-const foodTokenAccount = new web3.PublicKey("MP2AbPhxohEhhmRcioiXAPVhdkHu2Dww9WeUGTDdEvc")
 
 const kpp = new KeypairProvider("/home/user/.config/solana/bank.json")
 const keypair = kpp.get()
@@ -28,7 +27,6 @@ const foodInstructionProvider = new Food(
 	keypair.publicKey,
 	scoreProgramID,
 	foodMint,
-	foodTokenAccount,
 )
 
 async function go() {

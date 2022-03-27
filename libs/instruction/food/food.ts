@@ -6,16 +6,17 @@ export default class Food{
 	userPublicKey: web3.PublicKey
 	scoreProgramID: web3.PublicKey
 	foodMint: web3.PublicKey
-	foodTokenAccount: web3.PublicKey
 
-	constructor(userPublicKey: web3.PublicKey, scoreProgramID: web3.PublicKey, foodMint:web3.PublicKey, foodTokenAccount: web3.PublicKey){
+	constructor(userPublicKey: web3.PublicKey, scoreProgramID: web3.PublicKey, foodMint:web3.PublicKey){
 		this.scoreProgramID = scoreProgramID
 		this.userPublicKey = userPublicKey
 		this.foodMint = foodMint
-		this.foodTokenAccount = foodTokenAccount
 	}
 
 	async get(connection: web3.Connection, shipMint: web3.PublicKey): Promise<web3.TransactionInstruction>{
+		const foodResp = await connection.getTokenAccountsByOwner(this.userPublicKey, {mint: this.foodMint})
+		const foodTokenAccount = foodResp.value[0].pubkey
+
 		const ship_score_vars =	await factory.getScoreVarsShipInfo(connection, this.scoreProgramID, shipMint)
 		const data =	await factory.getShipStakingAccountInfo(connection, this.scoreProgramID, shipMint, this.userPublicKey)
 		let now = Date.now()/1000
@@ -34,7 +35,7 @@ export default class Food{
 		 	foodToFeed,
 		 	shipMint,
 		 	this.foodMint,
-		 	this.foodTokenAccount,
+			foodTokenAccount,
 		 	this.scoreProgramID,
 		)
 		return instruction
