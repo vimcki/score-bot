@@ -5,6 +5,7 @@ import * as factory from "@staratlas/factory"
 import KeypairProvider from "./libs/pkg/keypair/secret_key_file/keypair"
 import Food from "./libs/instruction/food/food"
 import Harvest from "./libs/instruction/harvest/harvest"
+import TransactionSender from "./libs/transaction_sender/basic/basic"
 
 //import Puller from "./libs/ships_data/puller/http_get/get"
 import connection from "./libs/rpc_connection/sa/sa"
@@ -29,6 +30,10 @@ const foodInstructionProvider = new Food(
 	foodMint,
 )
 
+const transactionSender = new TransactionSender(
+	keypair
+)
+
 async function go() {
 	//const ships = await ships_puller.pull()
 
@@ -40,20 +45,12 @@ async function go() {
 		const foodInstruction = await foodInstructionProvider.get(connection, shipMint)
 		let transaction = new web3.Transaction()
 		transaction.add(foodInstruction)
-		const signature = await web3.sendAndConfirmTransaction(
-			connection,
-			transaction,
-			[keypair],
-		);
-		console.log("refeed sig: " ,signature)
+		const foodSignature = await transactionSender.send(connection, transaction)
+		console.log("refeed sig: " ,foodSignature)
 		let harvestInstruction = await harvestInstructionProvider.get(connection, shipMint)
 		let harvestTransaction = new web3.Transaction()
 		harvestTransaction.add(harvestInstruction)
-		const harvestSignature = await web3.sendAndConfirmTransaction(
-			connection,
-			harvestTransaction,
-			[keypair],
-		);
+		const harvestSignature = await transactionSender.send(connection, harvestTransaction)
 		console.log('Harvest sig: ', harvestSignature);
 	}
 }
