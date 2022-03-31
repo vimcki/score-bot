@@ -1,7 +1,7 @@
 import * as web3 from '@solana/web3.js';
 
 const confirmOptions = {
-	maxRetries: 5,
+	maxRetries: 20,
 	commitment: 'processed' as web3.Commitment,
 }
 

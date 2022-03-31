@@ -8,7 +8,7 @@ import Harvest from "./libs/instruction/harvest/harvest"
 import TransactionSender from "./libs/transaction_sender/basic/basic"
 
 //import Puller from "./libs/ships_data/puller/http_get/get"
-import connection from "./libs/rpc_connection/sa/sa"
+import connection from "./libs/rpc_connection/figment/figment"
 //const ships_puller = new Puller("https://galaxy.staratlas.com/nfts")
 
 const atlasMint = new web3.PublicKey("ATLASXmbPQxBUYbxPsV97usA3fPQYEqzQBUHgiFCUsXx")

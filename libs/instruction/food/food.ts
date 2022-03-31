@@ -20,11 +20,13 @@ export default class Food{
 		const ship_score_vars =	await factory.getScoreVarsShipInfo(connection, this.scoreProgramID, shipMint)
 		const data =	await factory.getShipStakingAccountInfo(connection, this.scoreProgramID, shipMint, this.userPublicKey)
 		let now = Date.now()/1000
-		const foodPercentageLeft = 1-(now-data.currentCapacityTimestamp)/data.foodCurrentCapacity
-		const food_per_second = ship_score_vars.millisecondsToBurnOneFood/1000
-		const foodAfterFeeding = data.foodCurrentCapacity/food_per_second
+		const shipsNum = data.shipQuantityInEscrow
+		const foodPercentageMissing = (now-data.currentCapacityTimestamp)/data.foodCurrentCapacity
+		const foodPercentageLeft = 1-foodPercentageMissing
+		const foodPerSecond = ship_score_vars.millisecondsToBurnOneFood/1000
+		const foodAfterFeeding = data.foodCurrentCapacity/foodPerSecond
 		const foodLeft = foodPercentageLeft*foodAfterFeeding
-		let foodToFeed = ship_score_vars.foodMaxReserve - foodLeft
+		let foodToFeed = shipsNum * (ship_score_vars.foodMaxReserve - foodLeft)
 		if (foodToFeed < 1){
 			foodToFeed = 1
 		}
