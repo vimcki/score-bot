@@ -6,6 +6,7 @@ import KeypairProvider from "./libs/pkg/keypair/secret_key_file/keypair"
 import Food from "./libs/instruction/food/food"
 import Harvest from "./libs/instruction/harvest/harvest"
 import TransactionSender from "./libs/transaction_sender/basic/basic"
+import R4 from "./libs/resource_calculator/r4/r4"
 
 //import Puller from "./libs/ships_data/puller/http_get/get"
 import connection from "./libs/rpc_connection/figment/figment"
@@ -18,6 +19,8 @@ const foodMint = new web3.PublicKey("foodQJAztMzX1DKpLaiounNe2BDMds5RNuPC6jsNrDG
 const kpp = new KeypairProvider("/home/user/.config/solana/bank.json")
 const keypair = kpp.get()
 
+const resourceCalc = new R4()
+
 const harvestInstructionProvider = new Harvest(
 	keypair.publicKey,
 	scoreProgramID,
@@ -28,6 +31,7 @@ const foodInstructionProvider = new Food(
 	keypair.publicKey,
 	scoreProgramID,
 	foodMint,
+	resourceCalc,
 )
 
 const transactionSender = new TransactionSender(
@@ -43,6 +47,7 @@ async function go() {
 		const shipMint = fleet.shipMint
 		console.log('shipMint: ', shipMint.toJSON());
 		const foodInstruction = await foodInstructionProvider.get(connection, shipMint)
+		continue 
 		let transaction = new web3.Transaction()
 		transaction.add(foodInstruction)
 		const foodSignature = await transactionSender.send(connection, transaction)

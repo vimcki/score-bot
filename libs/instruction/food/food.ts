@@ -1,16 +1,19 @@
 import * as web3 from '@solana/web3.js';
 
+import {Resource, ResourceCalculator} from "./../../resource_calculator/calc"
 var factory = require("@staratlas/factory")
 
 export default class Food{
 	userPublicKey: web3.PublicKey
 	scoreProgramID: web3.PublicKey
 	foodMint: web3.PublicKey
+	resourceCalc: ResourceCalculator
 
-	constructor(userPublicKey: web3.PublicKey, scoreProgramID: web3.PublicKey, foodMint:web3.PublicKey){
+	constructor(userPublicKey: web3.PublicKey, scoreProgramID: web3.PublicKey, foodMint:web3.PublicKey, resourceCalc: ResourceCalculator){
 		this.scoreProgramID = scoreProgramID
 		this.userPublicKey = userPublicKey
 		this.foodMint = foodMint
+		this.resourceCalc = resourceCalc
 	}
 
 	async get(connection: web3.Connection, shipMint: web3.PublicKey): Promise<web3.TransactionInstruction>{
@@ -19,20 +22,7 @@ export default class Food{
 
 		const shipScoreVars =	await factory.getScoreVarsShipInfo(connection, this.scoreProgramID, shipMint)
 		const data =	await factory.getShipStakingAccountInfo(connection, this.scoreProgramID, shipMint, this.userPublicKey)
-		let now = Date.now()/1000
-		const shipsNum = data.shipQuantityInEscrow
-		const foodPercentageMissing = (now-data.currentCapacityTimestamp)/data.foodCurrentCapacity
-		const foodPercentageLeft = 1-foodPercentageMissing
-		const foodPerSecond = shipScoreVars.millisecondsToBurnOneFood/1000
-		const foodAfterFeeding = data.foodCurrentCapacity/foodPerSecond
-		const foodLeft = foodPercentageLeft*foodAfterFeeding
-		let foodToFeed = shipsNum * (shipScoreVars.foodMaxReserve - foodLeft)
-		if (foodToFeed < 1){
-			foodToFeed = 1
-		}
-		if (foodToFeed > shipsNum * shipScoreVars.foodMaxReserve ){
-			foodToFeed = shipsNum * shipScoreVars.foodMaxReserve
-		}
+		const foodToFeed = this.resourceCalc.resupply(Resource.Food, shipScoreVars, data)
 		const instruction = await factory.createRefeedInstruction(
 			connection,
 		 	this.userPublicKey,
