@@ -17,18 +17,21 @@ export default class Food{
 		const foodResp = await connection.getTokenAccountsByOwner(this.userPublicKey, {mint: this.foodMint})
 		const foodTokenAccount = foodResp.value[0].pubkey
 
-		const ship_score_vars =	await factory.getScoreVarsShipInfo(connection, this.scoreProgramID, shipMint)
+		const shipScoreVars =	await factory.getScoreVarsShipInfo(connection, this.scoreProgramID, shipMint)
 		const data =	await factory.getShipStakingAccountInfo(connection, this.scoreProgramID, shipMint, this.userPublicKey)
 		let now = Date.now()/1000
 		const shipsNum = data.shipQuantityInEscrow
 		const foodPercentageMissing = (now-data.currentCapacityTimestamp)/data.foodCurrentCapacity
 		const foodPercentageLeft = 1-foodPercentageMissing
-		const foodPerSecond = ship_score_vars.millisecondsToBurnOneFood/1000
+		const foodPerSecond = shipScoreVars.millisecondsToBurnOneFood/1000
 		const foodAfterFeeding = data.foodCurrentCapacity/foodPerSecond
 		const foodLeft = foodPercentageLeft*foodAfterFeeding
-		let foodToFeed = shipsNum * (ship_score_vars.foodMaxReserve - foodLeft)
+		let foodToFeed = shipsNum * (shipScoreVars.foodMaxReserve - foodLeft)
 		if (foodToFeed < 1){
 			foodToFeed = 1
+		}
+		if (foodToFeed > shipsNum * shipScoreVars.foodMaxReserve ){
+			foodToFeed = shipsNum * shipScoreVars.foodMaxReserve
 		}
 		const instruction = await factory.createRefeedInstruction(
 			connection,
