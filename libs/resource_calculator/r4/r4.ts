@@ -1,7 +1,4 @@
-import * as factory from "@staratlas/factory"
-var factory = require("@staratlas/factory")
-
-import {Resource} from "./../calc"
+import {Resource, VarsShip, StakingInfo} from "./../calc"
 
 interface Args{
 	shipsNumber: number
@@ -12,7 +9,7 @@ interface Args{
 }
 
 export default class R4{
-	resupply(resource: Resource, shipScoreVars: factory.ScoreVarsShipInfo, shipStakingInfo: factory.ShipStakingInfo): number{
+	resupply(resource: Resource, shipScoreVars: VarsShip, shipStakingInfo: StakingInfo): number{
 		let resourceCurrentCapacity: number
 		let millisecondsToBurnOneResource: number
 		let resourceMaxReserve: number
