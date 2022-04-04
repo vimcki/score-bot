@@ -72,6 +72,7 @@ async function go() {
 
 	const fleets =	await factory.getAllFleetsForUserPublicKey(connection, keypair.publicKey, scoreProgramID)
 
+	let instructions: web3.TransactionInstruction[] = []
 	for (let fleet of fleets) {
 		const shipMint = fleet.shipMint
 		console.log('shipMint: ', shipMint.toJSON());
@@ -80,12 +81,16 @@ async function go() {
 		const fuelInstruction = await fuelInstructionProvider.get(connection, shipMint)
 		const repairInstruction = await repairInstructionProvider.get(connection, shipMint)
 		const harvestInstruction = await harvestInstructionProvider.get(connection, shipMint)
+		instructions.push(feedInstruction, armInstruction, fuelInstruction, repairInstruction, harvestInstruction)
+	}
+	while (instructions.length > 0) {
+		console.log(instructions.length)
+		const processedInsctructions = instructions.splice(0,5)
+		console.log(processedInsctructions.length)
 		let transaction = new web3.Transaction()
-		transaction.add(feedInstruction)
-		transaction.add(armInstruction)
-		transaction.add(fuelInstruction)
-		transaction.add(repairInstruction)
-		transaction.add(harvestInstruction)
+		for (let instruction of processedInsctructions){
+			transaction.add(instruction)
+		}
 		const signature = await transactionSender.send(connection, transaction)
 		console.log("transaction sig: " ,signature)
 	}
