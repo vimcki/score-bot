@@ -9,18 +9,15 @@ import TransactionSender from "./libs/transaction_sender/basic/basic"
 import R4 from "./libs/resource_calculator/r4/r4"
 import {Resource} from "./libs/resource_calculator/calc"
 
+import {scoreProgramID, atlasMint, foodMint, ammoMint, fuelMint, toolkitMint} from "./addresses"
+
 //import Puller from "./libs/ships_data/puller/http_get/get"
 import connection from "./libs/rpc_connection/figment/figment"
 //const ships_puller = new Puller("https://galaxy.staratlas.com/nfts")
 
-const atlasMint = new web3.PublicKey("ATLASXmbPQxBUYbxPsV97usA3fPQYEqzQBUHgiFCUsXx")
-const scoreProgramID = new web3.PublicKey("FLEET1qqzpexyaDpqb2DGsSzE2sDCizewCg9WjrA6DBW")
-const foodMint = new web3.PublicKey("foodQJAztMzX1DKpLaiounNe2BDMds5RNuPC6jsNrDG")
-const ammoMint = new web3.PublicKey("ammoK8AkX2wnebQb35cDAZtTkvsXQbi82cGeTnUvvfK")
-const fuelMint = new web3.PublicKey("fueL3hBZjLLLJHiFH9cqZoozTG3XQZ53diwFPwbzNim")
-const toolkitMint = new web3.PublicKey("tooLsNYLiVqzg8o4m3L2Uetbn62mvMWRqkog6PQeYKL")
+require('dotenv').config();
 
-const kpp = new KeypairProvider("/home/user/.config/solana/bank.json")
+const kpp = new KeypairProvider(process.env.KEY_PATH)
 const keypair = kpp.get()
 
 const resourceCalc = new R4()
@@ -36,7 +33,6 @@ const feedInstructionProvider = new AnyResource(
 	keypair.publicKey,
 	scoreProgramID,
 	foodMint,
-	resourceCalc,
 )
 
 const armInsctructionProvider = new AnyResource(
@@ -44,7 +40,6 @@ const armInsctructionProvider = new AnyResource(
 	keypair.publicKey,
 	scoreProgramID,
 	ammoMint,
-	resourceCalc,
 )
 
 const fuelInstructionProvider = new AnyResource(
@@ -52,7 +47,6 @@ const fuelInstructionProvider = new AnyResource(
 	keypair.publicKey,
 	scoreProgramID,
 	fuelMint,
-	resourceCalc,
 )
 
 const repairInstructionProvider = new AnyResource(
@@ -60,7 +54,6 @@ const repairInstructionProvider = new AnyResource(
 	keypair.publicKey,
 	scoreProgramID,
 	toolkitMint,
-	resourceCalc,
 )
 
 const transactionSender = new TransactionSender(
@@ -76,10 +69,28 @@ async function go() {
 	for (let fleet of fleets) {
 		const shipMint = fleet.shipMint
 		console.log('shipMint: ', shipMint.toJSON());
-		const feedInstruction = await feedInstructionProvider.get(connection, shipMint)
-		const armInstruction = await armInsctructionProvider.get(connection, shipMint)
-		const fuelInstruction = await fuelInstructionProvider.get(connection, shipMint)
-		const repairInstruction = await repairInstructionProvider.get(connection, shipMint)
+		const scoreVarsShipInfo =	await factory.getScoreVarsShipInfo(connection, scoreProgramID, shipMint)
+		const shipStakingAccountInfo =	await factory.getShipStakingAccountInfo(
+			connection,
+		 	scoreProgramID,
+		 	shipMint,
+		 	keypair.publicKey,
+		)
+
+		const neededFood = resourceCalc.resupply(Resource.Food, scoreVarsShipInfo, shipStakingAccountInfo)
+		const neededArms = resourceCalc.resupply(Resource.Arms, scoreVarsShipInfo, shipStakingAccountInfo)
+		const neededFuel = resourceCalc.resupply(Resource.Fuel, scoreVarsShipInfo, shipStakingAccountInfo)
+		const neededToolkits = resourceCalc.resupply(Resource.Toolkit, scoreVarsShipInfo, shipStakingAccountInfo)
+
+		console.log(neededFood)
+		console.log(neededArms)
+		console.log(neededFuel)
+		console.log(neededToolkits)
+
+		const feedInstruction = await feedInstructionProvider.get(connection, neededFood, shipMint)
+		const armInstruction = await armInsctructionProvider.get(connection, neededArms, shipMint)
+		const fuelInstruction = await fuelInstructionProvider.get(connection, neededFuel, shipMint)
+		const repairInstruction = await repairInstructionProvider.get(connection, neededToolkits, shipMint)
 		const harvestInstruction = await harvestInstructionProvider.get(connection, shipMint)
 		instructions.push(feedInstruction, armInstruction, fuelInstruction, repairInstruction, harvestInstruction)
 	}
