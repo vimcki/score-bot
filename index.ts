@@ -63,8 +63,12 @@ const transactionSender = new TransactionSender(
 async function go() {
 	//const ships = await ships_puller.pull()
 
-	const fleets =	await factory.getAllFleetsForUserPublicKey(connection, keypair.publicKey, scoreProgramID)
+	const foodBalance = await getBalance(keypair.publicKey, foodMint)
+	const armsBalance = await getBalance(keypair.publicKey, ammoMint)
+	const foodBalance = await getBalance(keypair.publicKey, fuelMint)
+	const toolkitBalance = await getBalance(keypair.publicKey, toolkitMint)
 
+	const fleets =	await factory.getAllFleetsForUserPublicKey(connection, keypair.publicKey, scoreProgramID)
 	let instructions: web3.TransactionInstruction[] = []
 	for (let fleet of fleets) {
 		const shipMint = fleet.shipMint
@@ -105,6 +109,14 @@ async function go() {
 		const signature = await transactionSender.send(connection, transaction)
 		console.log("transaction sig: " ,signature)
 	}
+}
+
+async function getBalance(wallet: web3.PublicKey, mint: web3.PublicKey){
+	const tao = {mint: mint}
+	const resp = await connection.getTokenAccountsByOwner(wallet, tao)
+	const tokenWallet = resp.value[0].pubkey
+	const accountBalance = await connection.getTokenAccountBalance(tokenWallet)
+	return accountBalance.value.uiAmount
 }
 
 go()
