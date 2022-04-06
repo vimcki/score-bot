@@ -8,11 +8,13 @@ import Harvest from "./libs/instruction/harvest/harvest"
 import TransactionSender from "./libs/transaction_sender/basic/basic"
 import R4 from "./libs/resource_calculator/r4/r4"
 import {Resource} from "./libs/resource_calculator/calc"
+import SerumMarket from "./libs/market/market"
 
 import {scoreProgramID, atlasMint, foodMint, ammoMint, fuelMint, toolkitMint} from "./addresses"
 
 //import Puller from "./libs/ships_data/puller/http_get/get"
 import connection from "./libs/rpc_connection/figment/figment"
+
 //const ships_puller = new Puller("https://galaxy.staratlas.com/nfts")
 
 require('dotenv').config();
@@ -60,13 +62,23 @@ const transactionSender = new TransactionSender(
 	keypair
 )
 
+const market = new SerumMarket()
+
 async function go() {
 	//const ships = await ships_puller.pull()
+	
+	market.buy(connection)
+	return 
 
 	const foodBalance = await getBalance(keypair.publicKey, foodMint)
 	const armsBalance = await getBalance(keypair.publicKey, ammoMint)
-	const foodBalance = await getBalance(keypair.publicKey, fuelMint)
+	const fuelBalance = await getBalance(keypair.publicKey, fuelMint)
 	const toolkitBalance = await getBalance(keypair.publicKey, toolkitMint)
+
+	let neededFood = 0
+	let neededArms = 0
+	let neededFuel = 0
+	let neededToolkits = 0
 
 	const fleets =	await factory.getAllFleetsForUserPublicKey(connection, keypair.publicKey, scoreProgramID)
 	let instructions: web3.TransactionInstruction[] = []
@@ -81,23 +93,34 @@ async function go() {
 		 	keypair.publicKey,
 		)
 
-		const neededFood = resourceCalc.resupply(Resource.Food, scoreVarsShipInfo, shipStakingAccountInfo)
-		const neededArms = resourceCalc.resupply(Resource.Arms, scoreVarsShipInfo, shipStakingAccountInfo)
-		const neededFuel = resourceCalc.resupply(Resource.Fuel, scoreVarsShipInfo, shipStakingAccountInfo)
-		const neededToolkits = resourceCalc.resupply(Resource.Toolkit, scoreVarsShipInfo, shipStakingAccountInfo)
+		const neededFoodPart = resourceCalc.resupply(Resource.Food, scoreVarsShipInfo, shipStakingAccountInfo)
+		const neededArmsPart = resourceCalc.resupply(Resource.Arms, scoreVarsShipInfo, shipStakingAccountInfo)
+		const neededFuelPart = resourceCalc.resupply(Resource.Fuel, scoreVarsShipInfo, shipStakingAccountInfo)
+		const neededToolkitsPart = resourceCalc.resupply(Resource.Toolkit, scoreVarsShipInfo, shipStakingAccountInfo)
 
-		console.log(neededFood)
-		console.log(neededArms)
-		console.log(neededFuel)
-		console.log(neededToolkits)
-
-		const feedInstruction = await feedInstructionProvider.get(connection, neededFood, shipMint)
-		const armInstruction = await armInsctructionProvider.get(connection, neededArms, shipMint)
-		const fuelInstruction = await fuelInstructionProvider.get(connection, neededFuel, shipMint)
-		const repairInstruction = await repairInstructionProvider.get(connection, neededToolkits, shipMint)
+		neededFood += neededFoodPart
+		neededArms += neededArmsPart
+		neededFuel += neededFuelPart
+		neededToolkits += neededToolkitsPart
+		
+		const feedInstruction = await feedInstructionProvider.get(connection, neededFoodPart, shipMint)
+		const armInstruction = await armInsctructionProvider.get(connection, neededArmsPart, shipMint)
+		const fuelInstruction = await fuelInstructionProvider.get(connection, neededFuelPart, shipMint)
+		const repairInstruction = await repairInstructionProvider.get(connection, neededToolkitsPart, shipMint)
 		const harvestInstruction = await harvestInstructionProvider.get(connection, shipMint)
 		instructions.push(feedInstruction, armInstruction, fuelInstruction, repairInstruction, harvestInstruction)
 	}
+
+	const missingFood = Math.max(neededFood - foodBalance, 0)
+	const missingArms = Math.max(neededArms - armsBalance, 0)
+	const missingFuel = Math.max(neededFuel - fuelBalance, 0)
+	const missingToolkits = Math.max(neededToolkits - toolkitBalance, 0)
+
+	console.log(missingFood)
+	console.log(missingArms)
+	console.log(missingFuel)
+	console.log(missingToolkits)
+
 	while (instructions.length > 0) {
 		console.log(instructions.length)
 		const processedInsctructions = instructions.splice(0,5)
