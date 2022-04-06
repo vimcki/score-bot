@@ -13,6 +13,7 @@ import SerumMarket from "./libs/market/market"
 import {scoreProgramID, atlasMint, foodMint, ammoMint, fuelMint, toolkitMint} from "./addresses"
 
 //import Puller from "./libs/ships_data/puller/http_get/get"
+//
 import connection from "./libs/rpc_connection/figment/figment"
 //const ships_puller = new Puller("https://galaxy.staratlas.com/nfts")
 
