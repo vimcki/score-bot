@@ -14,7 +14,6 @@ import {scoreProgramID, atlasMint, foodMint, ammoMint, fuelMint, toolkitMint} fr
 
 //import Puller from "./libs/ships_data/puller/http_get/get"
 import connection from "./libs/rpc_connection/figment/figment"
-
 //const ships_puller = new Puller("https://galaxy.staratlas.com/nfts")
 
 require('dotenv').config();
