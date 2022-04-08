@@ -30,7 +30,7 @@ const harvestInstructionProvider = new Harvest(
 )
 
 const feedInstructionProvider = new AnyResource(
-	Resource.Food, 
+	Resource.Food,
 	keypair.publicKey,
 	scoreProgramID,
 	foodMint,
@@ -65,9 +65,10 @@ const market = new SerumMarket()
 
 async function go() {
 	//const ships = await ships_puller.pull()
-	
-	market.buy(connection)
-	return 
+
+	console.log("pqqq")
+	market.buy(connection, 69, keypair)
+	return
 
 	const foodBalance = await getBalance(keypair.publicKey, foodMint)
 	const armsBalance = await getBalance(keypair.publicKey, ammoMint)
@@ -79,17 +80,17 @@ async function go() {
 	let neededFuel = 0
 	let neededToolkits = 0
 
-	const fleets =	await factory.getAllFleetsForUserPublicKey(connection, keypair.publicKey, scoreProgramID)
+	const fleets = await factory.getAllFleetsForUserPublicKey(connection, keypair.publicKey, scoreProgramID)
 	let instructions: web3.TransactionInstruction[] = []
 	for (let fleet of fleets) {
 		const shipMint = fleet.shipMint
 		console.log('shipMint: ', shipMint.toJSON());
-		const scoreVarsShipInfo =	await factory.getScoreVarsShipInfo(connection, scoreProgramID, shipMint)
-		const shipStakingAccountInfo =	await factory.getShipStakingAccountInfo(
+		const scoreVarsShipInfo = await factory.getScoreVarsShipInfo(connection, scoreProgramID, shipMint)
+		const shipStakingAccountInfo = await factory.getShipStakingAccountInfo(
 			connection,
-		 	scoreProgramID,
-		 	shipMint,
-		 	keypair.publicKey,
+			scoreProgramID,
+			shipMint,
+			keypair.publicKey,
 		)
 
 		const neededFoodPart = resourceCalc.resupply(Resource.Food, scoreVarsShipInfo, shipStakingAccountInfo)
@@ -101,7 +102,7 @@ async function go() {
 		neededArms += neededArmsPart
 		neededFuel += neededFuelPart
 		neededToolkits += neededToolkitsPart
-		
+
 		const feedInstruction = await feedInstructionProvider.get(connection, neededFoodPart, shipMint)
 		const armInstruction = await armInsctructionProvider.get(connection, neededArmsPart, shipMint)
 		const fuelInstruction = await fuelInstructionProvider.get(connection, neededFuelPart, shipMint)
@@ -122,18 +123,18 @@ async function go() {
 
 	while (instructions.length > 0) {
 		console.log(instructions.length)
-		const processedInsctructions = instructions.splice(0,5)
+		const processedInsctructions = instructions.splice(0, 5)
 		console.log(processedInsctructions.length)
 		let transaction = new web3.Transaction()
-		for (let instruction of processedInsctructions){
+		for (let instruction of processedInsctructions) {
 			transaction.add(instruction)
 		}
 		const signature = await transactionSender.send(connection, transaction)
-		console.log("transaction sig: " ,signature)
+		console.log("transaction sig: ", signature)
 	}
 }
 
-async function getBalance(wallet: web3.PublicKey, mint: web3.PublicKey){
+async function getBalance(wallet: web3.PublicKey, mint: web3.PublicKey) {
 	const tao = {mint: mint}
 	const resp = await connection.getTokenAccountsByOwner(wallet, tao)
 	const tokenWallet = resp.value[0].pubkey
