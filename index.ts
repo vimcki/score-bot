@@ -67,7 +67,7 @@ const market = new SerumMarket(transactionSender)
 async function go() {
 	//const ships = await ships_puller.pull()
 
-	market.buy(connection, 69, keypair)
+	market.buy(connection, Resource.Arms, 69, keypair)
 	return
 
 	const foodBalance = await getBalance(keypair.publicKey, foodMint)
