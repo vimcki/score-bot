@@ -62,12 +62,11 @@ const transactionSender = new TransactionSender(
 	keypair
 )
 
-const market = new SerumMarket()
+const market = new SerumMarket(transactionSender)
 
 async function go() {
 	//const ships = await ships_puller.pull()
 
-	console.log("pqqq")
 	market.buy(connection, 69, keypair)
 	return
 
