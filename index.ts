@@ -67,9 +67,6 @@ const market = new SerumMarket(transactionSender)
 async function go() {
 	//const ships = await ships_puller.pull()
 
-	market.buy(connection, Resource.Arms, 69, keypair)
-	return
-
 	const foodBalance = await getBalance(keypair.publicKey, foodMint)
 	const armsBalance = await getBalance(keypair.publicKey, ammoMint)
 	const fuelBalance = await getBalance(keypair.publicKey, fuelMint)
@@ -81,11 +78,14 @@ async function go() {
 	let neededToolkits = 0
 
 	const fleets = await factory.getAllFleetsForUserPublicKey(connection, keypair.publicKey, scoreProgramID)
-	let instructions: web3.TransactionInstruction[] = []
+	let resupplyInstructions: web3.TransactionInstruction[] = []
+	let harvestInstructions: web3.TransactionInstruction[] = []
 	for (let fleet of fleets) {
 		const shipMint = fleet.shipMint
 		console.log('shipMint: ', shipMint.toJSON());
+		console.log('getting scoreVarsShipInfo')
 		const scoreVarsShipInfo = await factory.getScoreVarsShipInfo(connection, scoreProgramID, shipMint)
+		console.log('getting shipStakingAccountInfo')
 		const shipStakingAccountInfo = await factory.getShipStakingAccountInfo(
 			connection,
 			scoreProgramID,
@@ -103,24 +103,49 @@ async function go() {
 		neededFuel += neededFuelPart
 		neededToolkits += neededToolkitsPart
 
+		console.log('getting feedInstruction')
 		const feedInstruction = await feedInstructionProvider.get(connection, neededFoodPart, shipMint)
+		console.log('getting armInsctruction')
 		const armInstruction = await armInsctructionProvider.get(connection, neededArmsPart, shipMint)
+		console.log('getting fuelInstruction')
 		const fuelInstruction = await fuelInstructionProvider.get(connection, neededFuelPart, shipMint)
+		console.log('getting repairInstruction')
 		const repairInstruction = await repairInstructionProvider.get(connection, neededToolkitsPart, shipMint)
+		console.log('getting harvestInstruction')
 		const harvestInstruction = await harvestInstructionProvider.get(connection, shipMint)
-		instructions.push(feedInstruction, armInstruction, fuelInstruction, repairInstruction, harvestInstruction)
+
+		harvestInstructions.push(harvestInstruction)
+		resupplyInstructions.push(feedInstruction, armInstruction, fuelInstruction, repairInstruction)
 	}
+	await executeInstructions(connection, harvestInstructions)
 
 	const missingFood = Math.max(neededFood - foodBalance, 0)
 	const missingArms = Math.max(neededArms - armsBalance, 0)
 	const missingFuel = Math.max(neededFuel - fuelBalance, 0)
 	const missingToolkits = Math.max(neededToolkits - toolkitBalance, 0)
 
-	console.log(missingFood)
-	console.log(missingArms)
-	console.log(missingFuel)
-	console.log(missingToolkits)
+	if (missingFood > 0) {
+		console.log(`Buying ${missingFood} food`)
+		await market.buy(connection, Resource.Food, missingFood, keypair)
+	}
+	if (missingArms > 0) {
+		console.log(`Buying ${missingArms} arms`)
+		await market.buy(connection, Resource.Arms, missingArms, keypair)
+	}
+	if (missingFuel > 0) {
+		console.log(`Buying ${missingFuel} fuel`)
+		await market.buy(connection, Resource.Fuel, missingFuel, keypair)
+	}
+	if (missingToolkits > 0) {
+		console.log(`Buying ${missingToolkits} toolkits`)
+		await market.buy(connection, Resource.Toolkit, missingToolkits, keypair)
+	}
+	await executeInstructions(connection, resupplyInstructions)
 
+}
+
+async function executeInstructions(connection: web3.Connection, instructions: web3.TransactionInstruction[]) {
+	console.log(`Executing ${instructions.length} instructions`)
 	while (instructions.length > 0) {
 		console.log(instructions.length)
 		const processedInsctructions = instructions.splice(0, 5)
@@ -134,12 +159,12 @@ async function go() {
 	}
 }
 
-async function getBalance(wallet: web3.PublicKey, mint: web3.PublicKey) {
+async function getBalance(wallet: web3.PublicKey, mint: web3.PublicKey): Promise<number> {
 	const tao = {mint: mint}
 	const resp = await connection.getTokenAccountsByOwner(wallet, tao)
 	const tokenWallet = resp.value[0].pubkey
 	const accountBalance = await connection.getTokenAccountBalance(tokenWallet)
-	return accountBalance.value.uiAmount
+	return accountBalance.value.uiAmount || 0
 }
 
 go()
