@@ -1,7 +1,5 @@
 import * as web3 from '@solana/web3.js';
 
-import * as serum from "@project-serum/serum"
-
 import {Resource} from "./../../resource_calculator/calc"
 var factory = require("@staratlas/factory")
 
@@ -52,8 +50,9 @@ export default class AnyResource {
 				)
 				break
 			} catch (error) {
-				const msg = error.message
-				if (msg.includes("502 Bad Gateway")) {
+				let message = 'Unknown Error'
+				if (error instanceof Error) message = error.message
+				if (message.includes("502 Bad Gateway")) {
 					console.log("502 Bad Gateway")
 				} else {
 					throw error

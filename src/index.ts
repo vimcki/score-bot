@@ -2,19 +2,19 @@ import * as web3 from '@solana/web3.js';
 
 import * as factory from "@staratlas/factory"
 
-import KeypairProvider from "./libs/pkg/keypair/secret_key_file/keypair"
-import AnyResource from "./libs/instruction/any_resource/any"
-import Harvest from "./libs/instruction/harvest/harvest"
-import TransactionSender from "./libs/transaction_sender/basic/basic"
-import R4 from "./libs/resource_calculator/r4/r4"
-import {Resource} from "./libs/resource_calculator/calc"
-import SerumMarket from "./libs/market/market"
+import KeypairProvider from "./pkg/keypair/secret_key_file/keypair"
+import AnyResource from "./instruction/any_resource/any"
+import Harvest from "./instruction/harvest/harvest"
+import TransactionSender from "./transaction_sender/basic/basic"
+import R4 from "./resource_calculator/r4/r4"
+import {Resource} from "./resource_calculator/calc"
+import SerumMarket from "./market/market"
 
 import {scoreProgramID, atlasMint, foodMint, ammoMint, fuelMint, toolkitMint} from "./addresses"
 
 //import Puller from "./libs/ships_data/puller/http_get/get"
 
-import connection from "./libs/rpc_connection/figment/figment"
+import connection from "./rpc_connection/figment/figment"
 //const ships_puller = new Puller("https://galaxy.staratlas.com/nfts")
 
 require('dotenv').config();
@@ -65,6 +65,7 @@ const transactionSender = new TransactionSender(
 const market = new SerumMarket(transactionSender)
 
 async function go() {
+	console.log("Starting score bot")
 	//const ships = await ships_puller.pull()
 
 	const foodBalance = await getBalance(keypair.publicKey, foodMint)

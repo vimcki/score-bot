@@ -6,7 +6,7 @@ export default class AccountProvider {
 	account: Account
 
 	constructor(path: string) {
-		var data: string
+		var data: string = ''
 		try {
 			data = fs.readFileSync(path, 'utf8')
 		} catch (err) {

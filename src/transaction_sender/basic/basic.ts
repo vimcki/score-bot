@@ -10,7 +10,7 @@ export default class TransactionSender {
 		this.keypair = keypair
 	}
 
-	async send(connection: web3.Connection, transaction: web3.Transaction): Promise<[web3.TransactionSignature, Error]> {
+	async send(connection: web3.Connection, transaction: web3.Transaction): Promise<[web3.TransactionSignature, Error | null]> {
 		let signature: string
 		while (true) {
 			try {
@@ -23,22 +23,25 @@ export default class TransactionSender {
 				console.log("success")
 				break
 			} catch (err) {
-				const msg = err.message
+				let msg = 'Unknown Error'
+				if (err instanceof Error) msg = err.message
 				if (msg.includes("Transaction was not confirmed in")) {
 					console.log("ERR transcation not confirmed")
 				} else if (msg.includes("Error processing Instruction")) {
 					console.log("ERR prcoessing instruction")
-					return [signature, err]
+					return ['', err as Error]
 				} else if (msg.includes("Blockhash not found")) {
 					console.log("ERR blockhash not found")
 				} else if (msg.includes("Node is behind by")) {
 					console.log("ERR node is behind")
 				} else if (msg.includes("Transaction too large")) {
-					console.log("ERR node is behind")
-					return [signature, err]
+					console.log("ERR transaction too large")
+					return ['', err as Error]
+				} else if (msg.includes("502 Bad Gateway")) {
+					console.log("502 Bad Gateway")
 				} else {
 					console.log(err)
-					return [signature, err]
+					return ['', err as Error]
 				}
 			}
 		}

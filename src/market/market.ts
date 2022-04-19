@@ -4,7 +4,7 @@ import * as serum from "@project-serum/serum"
 
 import {OrderParams} from "@project-serum/serum/lib/market"
 
-import {atlasMint} from "./../../addresses"
+import {atlasMint} from "./../addresses"
 import {TransactionSender} from "../transaction_sender/sender"
 import {Resource} from "../resource_calculator/calc"
 
