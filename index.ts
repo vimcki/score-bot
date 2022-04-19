@@ -19,7 +19,7 @@ import connection from "./libs/rpc_connection/figment/figment"
 
 require('dotenv').config();
 
-const kpp = new KeypairProvider(process.env.KEY_PATH)
+const kpp = new KeypairProvider(process.env.KEY_PATH as string)
 const keypair = kpp.get()
 
 const resourceCalc = new R4()
@@ -119,10 +119,11 @@ async function go() {
 	}
 	await executeInstructions(connection, harvestInstructions)
 
-	const missingFood = Math.max(neededFood - foodBalance, 0)
-	const missingArms = Math.max(neededArms - armsBalance, 0)
-	const missingFuel = Math.max(neededFuel - fuelBalance, 0)
-	const missingToolkits = Math.max(neededToolkits - toolkitBalance, 0)
+	const multiplier = 1.05
+	const missingFood = Math.max(neededFood - foodBalance, 0) * multiplier
+	const missingArms = Math.max(neededArms - armsBalance, 0) * multiplier
+	const missingFuel = Math.max(neededFuel - fuelBalance, 0) * multiplier
+	const missingToolkits = Math.max(neededToolkits - toolkitBalance, 0) * multiplier
 
 	if (missingFood > 0) {
 		console.log(`Buying ${missingFood} food`)

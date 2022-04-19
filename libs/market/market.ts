@@ -31,9 +31,6 @@ export default class SerumMarket {
 		const resp = await connection.getTokenAccountsByOwner(keypair.publicKey, {mint: atlasMint})
 		const atlasWallet = resp.value[0].pubkey
 
-		console.log("price:", price)
-		console.log("ammount:", ammount)
-		console.log(openOrdersAccounts[0])
 		const orderArgs = {
 			owner: keypair.publicKey,
 			payer: atlasWallet,
@@ -46,7 +43,6 @@ export default class SerumMarket {
 		} as OrderParams<web3.PublicKey>
 		let placeOrderInstruction = market.makePlaceOrderInstruction(connection, orderArgs)
 		let transaction = new web3.Transaction()
-		console.log(placeOrderInstruction)
 		transaction.add(placeOrderInstruction)
 		const sig = await this.transactionSender.send(connection, transaction)
 		console.log("buy:", sig)
