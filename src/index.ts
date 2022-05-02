@@ -9,13 +9,11 @@ import TransactionSender from "./transaction_sender/basic/basic"
 import R4 from "./resource_calculator/r4/r4"
 import {Resource} from "./resource_calculator/calc"
 import SerumMarket from "./market/market"
+import Balance from "./balance"
 
 import {scoreProgramID, atlasMint, foodMint, ammoMint, fuelMint, toolkitMint} from "./addresses"
 
-//import Puller from "./libs/ships_data/puller/http_get/get"
-
 import connection from "./rpc_connection/figment/figment"
-//const ships_puller = new Puller("https://galaxy.staratlas.com/nfts")
 
 require('dotenv').config();
 
@@ -64,14 +62,19 @@ const transactionSender = new TransactionSender(
 
 const market = new SerumMarket(transactionSender)
 
+const balance = new Balance(keypair.publicKey)
+
 async function go() {
 	console.log("Starting score bot")
-	//const ships = await ships_puller.pull()
 
-	const foodBalance = await getBalance(keypair.publicKey, foodMint)
-	const armsBalance = await getBalance(keypair.publicKey, ammoMint)
-	const fuelBalance = await getBalance(keypair.publicKey, fuelMint)
-	const toolkitBalance = await getBalance(keypair.publicKey, toolkitMint)
+	console.log("getting food balance")
+	const foodBalance = await balance.get(connection, foodMint)
+	console.log("getting ammo balance")
+	const armsBalance = await balance.get(connection, ammoMint)
+	console.log("getting fuel balance")
+	const fuelBalance = await balance.get(connection, fuelMint)
+	console.log("getting toolkit balance")
+	const toolkitBalance = await balance.get(connection, toolkitMint)
 
 	let neededFood = 0
 	let neededArms = 0
@@ -159,14 +162,6 @@ async function executeInstructions(connection: web3.Connection, instructions: we
 		const signature = await transactionSender.send(connection, transaction)
 		console.log("transaction sig: ", signature)
 	}
-}
-
-async function getBalance(wallet: web3.PublicKey, mint: web3.PublicKey): Promise<number> {
-	const tao = {mint: mint}
-	const resp = await connection.getTokenAccountsByOwner(wallet, tao)
-	const tokenWallet = resp.value[0].pubkey
-	const accountBalance = await connection.getTokenAccountBalance(tokenWallet)
-	return accountBalance.value.uiAmount || 0
 }
 
 go()
