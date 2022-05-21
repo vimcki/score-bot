@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@project-serum/serum": "^0.13.62",
-    "@solana/web3.js": "^1.35.1",
+    "@solana/web3.js": "^1.43.1",
     "@staratlas/factory": "^0.1.26",
     "axios": "^0.26.0"
   },
