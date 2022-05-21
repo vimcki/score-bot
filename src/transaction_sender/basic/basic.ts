@@ -45,6 +45,8 @@ export default class TransactionSender {
 					console.log("sender, 504 Gateway Time-out")
 				} else if (msg.includes("Node is unhealthy")) {
 					console.log("sender, Node is unhealthy")
+				} else if (msg.includes("block height exceeded")) {
+					console.log("block height exceeded")
 				} else {
 					console.log(err)
 					return ['', err as Error]
