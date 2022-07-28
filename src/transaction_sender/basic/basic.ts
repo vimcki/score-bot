@@ -1,7 +1,7 @@
 import * as web3 from '@solana/web3.js';
 
 const confirmOptions = {
-	commitment: 'processed' as web3.Commitment,
+	commitment: 'finalized' as web3.Commitment,
 }
 
 export default class TransactionSender {

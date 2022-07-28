@@ -8,7 +8,8 @@ import Harvest from "./instruction/harvest/harvest"
 import TransactionSender from "./transaction_sender/basic/basic"
 import R4 from "./resource_calculator/r4/r4"
 import {Resource} from "./resource_calculator/calc"
-import SerumMarket from "./market/market"
+//import SerumMarket from "./market/market"
+import GalacticMarket from "./market/sa/market"
 import Balance from "./balance"
 
 import {scoreProgramID, atlasMint, foodMint, ammoMint, fuelMint, toolkitMint} from "./addresses"
@@ -60,12 +61,13 @@ const transactionSender = new TransactionSender(
 	keypair
 )
 
-const market = new SerumMarket(transactionSender)
+const market = new GalacticMarket(transactionSender, connection)
 
 const balance = new Balance(keypair.publicKey)
 
 async function go() {
 	console.log("Starting score bot")
+	await market.init()
 
 	console.log("getting food balance")
 	const foodBalance = await balance.get(connection, foodMint)
@@ -129,24 +131,30 @@ async function go() {
 	const missingFuel = Math.max(neededFuel - fuelBalance, 0) * multiplier
 	const missingToolkits = Math.max(neededToolkits - toolkitBalance, 0) * multiplier
 
+	console.log("food:", missingFood)
+	console.log("arms", missingArms)
+	console.log("fuel", missingFuel)
+	console.log("toolkits", missingToolkits)
+
 	if (missingFood > 0) {
 		console.log(`Buying ${missingFood} food`)
-		await market.buy(connection, Resource.Food, missingFood, keypair)
+		await market.buy(Resource.Food, missingFood, keypair)
 	}
 	if (missingArms > 0) {
 		console.log(`Buying ${missingArms} arms`)
-		await market.buy(connection, Resource.Arms, missingArms, keypair)
+		await market.buy(Resource.Arms, missingArms, keypair)
 	}
 	if (missingFuel > 0) {
 		console.log(`Buying ${missingFuel} fuel`)
-		await market.buy(connection, Resource.Fuel, missingFuel, keypair)
+		await market.buy(Resource.Fuel, missingFuel, keypair)
 	}
 	if (missingToolkits > 0) {
 		console.log(`Buying ${missingToolkits} toolkits`)
-		await market.buy(connection, Resource.Toolkit, missingToolkits, keypair)
+		await market.buy(Resource.Toolkit, missingToolkits, keypair)
 	}
 	await executeInstructions(connection, resupplyInstructions)
-
+	await market.end()
+	process.exit()
 }
 
 async function executeInstructions(connection: web3.Connection, instructions: web3.TransactionInstruction[]) {

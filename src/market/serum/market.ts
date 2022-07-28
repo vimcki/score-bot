@@ -4,9 +4,9 @@ import * as serum from "@project-serum/serum"
 
 import {OrderParams} from "@project-serum/serum/lib/market"
 
-import {atlasMint} from "./../addresses"
-import {TransactionSender} from "../transaction_sender/sender"
-import {Resource} from "../resource_calculator/calc"
+import {atlasMint} from "./../../addresses"
+import {TransactionSender} from "./../../transaction_sender/sender"
+import {Resource} from "./../../resource_calculator/calc"
 
 const serumProgramID = new web3.PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin")
 
